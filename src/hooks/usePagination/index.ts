@@ -16,28 +16,22 @@ export interface usePaginationState {
   isLastPage: boolean;
 }
 
-export type usePaginationActions = {
+export interface usePaginationSetState {
+  setPage: (arg: number) => void;
+  setPageSize: (arg: number) => void;
+  prev: () => void;
+  next: () => void;
+}
+
+export type UsePaginationReturn = [usePaginationState, usePaginationSetState];
+
+type usePaginationActions = {
   type: 'setPage' | 'setPageSize' | 'setPageCount';
   payload: number;
 };
 
-export type UsePaginationReturn = [
-  number,
-  number,
-  number,
-  boolean,
-  boolean,
-  {
-    setPage: (arg: number) => void;
-    setPageSize: (arg: number) => void;
-    prev: () => void;
-    next: () => void;
-  }
-];
-
-export function usePagination(
-  options: UsePaginationOptions
-): UsePaginationReturn {
+export function usePagination(opt: UsePaginationOptions): UsePaginationReturn;
+export function usePagination(options: UsePaginationOptions) {
   const { total = Infinity, defaultPageSize = 10, defaultPage = 1 } = options;
 
   function calcPageCount(total: number, pageSize: number): number {
@@ -50,7 +44,7 @@ export function usePagination(
     pageSize: defaultPageSize,
     pageCount: 0,
     isFirstPage: false,
-    isLastPage: false,
+    isLastPage: false
   };
 
   function init(initState: usePaginationState) {
@@ -59,7 +53,7 @@ export function usePagination(
       pageSize: clamp(defaultPageSize, 1, Infinity),
       pageCount: calcPageCount(total, defaultPageSize),
       isFirstPage: defaultPage === 1,
-      isLastPage: defaultPage === calcPageCount(total, defaultPageSize),
+      isLastPage: defaultPage === calcPageCount(total, defaultPageSize)
     };
   }
 
@@ -71,7 +65,7 @@ export function usePagination(
           ...state,
           page: clamp(action.payload, 1, pageCount),
           isFirstPage: action.payload === 1,
-          isLastPage: action.payload === pageCount,
+          isLastPage: action.payload === pageCount
         };
       },
       setPageSize: () => {
@@ -80,7 +74,7 @@ export function usePagination(
           ...state,
           pageCount: pageCount,
           pageSize: action.payload,
-          page: clamp(state.page, 1, pageCount),
+          page: clamp(state.page, 1, pageCount)
         };
       },
       setPageCount: () => {
@@ -91,10 +85,10 @@ export function usePagination(
           page,
           pageCount: pageCount,
           isFirstPage: state.page === 1,
-          isLastPage: page === pageCount,
+          isLastPage: page === pageCount
         };
       },
-      default: () => state,
+      default: () => state
     };
 
     const has = action.type in actionMap;
@@ -129,16 +123,12 @@ export function usePagination(
   }, [state.page, state.pageCount]);
 
   return [
-    state.page,
-    state.pageSize,
-    state.pageCount,
-    state.isFirstPage,
-    state.isLastPage,
+    state,
     {
       setPage,
       setPageSize,
       prev,
-      next,
-    },
+      next
+    }
   ];
 }
