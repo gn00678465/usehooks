@@ -39,6 +39,7 @@ export function useResizeObserver(
   options: UseResizeObserverOptions = {}
 ) {
   const [targets, setTargets] = useState<(Element | null)[]>();
+  const [running, setRunning] = useState(false);
 
   const observer = useRef<ResizeObserver | undefined>(undefined);
 
@@ -53,8 +54,13 @@ export function useResizeObserver(
 
   const stop = useCallback(() => {
     cleanup();
+    setRunning(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    setRunning(true);
+  }, [])
 
   useEffect(() => {
     setTargets(
@@ -63,11 +69,13 @@ export function useResizeObserver(
   }, [target]);
 
   useEffect(() => {
-    cleanup();
-    if (window && targets) {
-      observer.current = new ResizeObserver(callback);
-      for (const el of targets) {
-        el && observer.current.observe(el, options);
+    if (running) {
+      cleanup();
+      if (window && targets) {
+        observer.current = new ResizeObserver(callback);
+        for (const el of targets) {
+          el && observer.current.observe(el, options);
+        }
       }
     }
     return () => {
@@ -78,7 +86,7 @@ export function useResizeObserver(
 
   return {
     stop
-  }
+  };
 }
 
-export type useResizeObserverReturn = ReturnType<typeof useResizeObserver>
+export type useResizeObserverReturn = ReturnType<typeof useResizeObserver>;
