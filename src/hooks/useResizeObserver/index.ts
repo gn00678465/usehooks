@@ -60,7 +60,7 @@ export function useResizeObserver(
 
   useEffect(() => {
     setRunning(true);
-  }, [])
+  }, []);
 
   useEffect(() => {
     setTargets(
