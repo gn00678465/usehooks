@@ -19,8 +19,8 @@ export interface usePaginationState {
 export interface usePaginationSetState {
   setPage: (arg: number) => void;
   setPageSize: (arg: number) => void;
-  prev: () => void;
-  next: () => void;
+  prev: (arg: number) => void;
+  next: (arg: number) => void;
 }
 
 export type UsePaginationReturn = [usePaginationState, usePaginationSetState];
@@ -111,14 +111,14 @@ export function usePagination(options: UsePaginationOptions) {
     dispatch({ type: 'setPageSize', payload: pageSize });
   }, []);
 
-  const prev = useCallback(() => {
-    const newPage = state.page - 1 < 1 ? 1 : state.page - 1;
+  const prev = useCallback((n: number) => {
+    const newPage = state.page - n < 1 ? 1 : state.page - 1;
     dispatch({ type: 'setPage', payload: newPage });
   }, [state]);
 
-  const next = useCallback(() => {
+  const next = useCallback((n: number) => {
     const newPage =
-      state.page + 1 > state.pageCount ? state.pageCount : state.page + 1;
+      state.page + n > state.pageCount ? state.pageCount : state.page + 1;
     dispatch({ type: 'setPage', payload: newPage });
   }, [state.page, state.pageCount]);
 
