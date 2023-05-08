@@ -21,11 +21,11 @@ describe('usePagination', () => {
     test('increments after calling next() when there are still pages left', () => {
       const { result } = setup({ defaultPage: 1, total: 40 });
       act(() => {
-        result.current[1].next();
+        result.current[1].next(1);
       });
       expect(result.current[0].page).toBe(2);
       act(() => {
-        result.current[1].next();
+        result.current[1].next(1);
       });
       expect(result.current[0].page).toBe(3);
     });
@@ -33,7 +33,7 @@ describe('usePagination', () => {
     test("doesn't decrement after calling prev() when still on the first page", () => {
       const { result } = setup({ defaultPage: 1, total: 40 });
       act(() => {
-        result.current[1].prev();
+        result.current[1].prev(1);
       });
       expect(result.current[0].page).toBe(1);
     });
@@ -41,16 +41,16 @@ describe('usePagination', () => {
     test("doesn't increment past the last page", () => {
       const { result } = setup({ defaultPage: 1, total: 40 });
       act(() => {
-        result.current[1].next();
+        result.current[1].next(1);
       });
       act(() => {
-        result.current[1].next();
+        result.current[1].next(1);
       });
       act(() => {
-        result.current[1].next();
+        result.current[1].next(1);
       });
       act(() => {
-        result.current[1].next();
+        result.current[1].next(1);
       });
       expect(result.current[0].page).toBe(4);
     });
@@ -114,11 +114,11 @@ describe('usePagination', () => {
       });
 
       act(() => {
-        result.current[1].prev();
+        result.current[1].prev(1);
       });
       expect(result.current[0].pageSize).toBe(14);
       act(() => {
-        result.current[1].next();
+        result.current[1].next(1);
       });
       expect(result.current[0].pageSize).toBe(14);
     });
@@ -148,22 +148,22 @@ describe('usePagination', () => {
       const { result } = setup({ defaultPageSize: 20, total: 35 });
       expect(result.current[0].isFirstPage).toBe(true);
       act(() => {
-        result.current[1].prev();
+        result.current[1].prev(1);
       });
       expect(result.current[0].isFirstPage).toBe(true);
     });
     test('returns false when not the first page', () => {
       const { result } = setup({ defaultPageSize: 10, total: 35 });
       act(() => {
-        result.current[1].next();
+        result.current[1].next(1);
       });
       expect(result.current[0].isFirstPage).toBe(false);
       act(() => {
-        result.current[1].next();
+        result.current[1].next(1);
       });
       expect(result.current[0].isFirstPage).toBe(false);
       act(() => {
-        result.current[1].next();
+        result.current[1].next(1);
       });
       expect(result.current[0].isFirstPage).toBe(false);
     });
@@ -173,11 +173,11 @@ describe('usePagination', () => {
     test('returns true when on the last page', () => {
       const { result } = setup({ defaultPageSize: 20, total: 35 });
       act(() => {
-        result.current[1].next();
+        result.current[1].next(1);
       });
       expect(result.current[0].isLastPage).toBe(true);
       act(() => {
-        result.current[1].next();
+        result.current[1].next(1);
       });
       expect(result.current[0].isLastPage).toBe(true);
     });
@@ -185,7 +185,7 @@ describe('usePagination', () => {
       const { result } = setup({ defaultPageSize: 20, total: 35 });
       expect(result.current[0].isLastPage).toBe(false);
       act(() => {
-        result.current[1].prev();
+        result.current[1].prev(1);
       });
       expect(result.current[0].isLastPage).toBe(false);
     });
