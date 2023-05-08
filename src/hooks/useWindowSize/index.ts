@@ -37,6 +37,8 @@ export function useWindowSize(options: useWindowSizeOptions) {
 
       window.addEventListener('resize', handle, { passive: true });
 
+      handle();
+
       return () => {
         window.removeEventListener('resize', handle);
       };
@@ -46,4 +48,4 @@ export function useWindowSize(options: useWindowSizeOptions) {
   return state;
 }
 
-export type UseWindowSizeReturn = ReturnType<typeof useWindowSize>
+export type UseWindowSizeReturn = ReturnType<typeof useWindowSize>;
