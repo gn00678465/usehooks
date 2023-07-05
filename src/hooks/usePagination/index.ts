@@ -23,7 +23,7 @@ export interface usePaginationSetState {
   next: (arg: number) => void;
 }
 
-export type UsePaginationReturn = [usePaginationState, usePaginationSetState];
+export type UsePaginationReturn = usePaginationState & usePaginationSetState;
 
 type usePaginationActions = {
   type: 'setPage' | 'setPageSize' | 'setPageCount';
@@ -122,13 +122,11 @@ export function usePagination(options: UsePaginationOptions) {
     dispatch({ type: 'setPage', payload: newPage });
   }, [state.page, state.pageCount]);
 
-  return [
-    state,
-    {
-      setPage,
+  return {
+    ...state,
+    setPage,
       setPageSize,
       prev,
       next
-    }
-  ];
+  }
 }
