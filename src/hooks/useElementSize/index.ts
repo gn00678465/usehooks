@@ -1,58 +1,91 @@
-import { RefObject, useEffect, useState } from 'react';
-import { useResizeObserver } from '..';
-import type { UseResizeObserverOptions } from '..';
+import { RefObject, useEffect, useState, useCallback } from 'react';
 
 export interface ElementSize {
   width: number;
   height: number;
 }
 
-export type UseElementSizeReturn = [number, number];
+export interface useElementSizeOptions {
+  /**
+   *
+   * @default 'content-box'
+   */
+  box?: ResizeObserverBoxOptions;
+}
+
+export type UseElementSizeReturn = ElementSize;
 
 export function useElementSize(
   target: RefObject<Element>,
   initialSize: ElementSize = { width: 0, height: 0 },
-  options: UseResizeObserverOptions = {}
+  options: useElementSizeOptions = {}
 ): UseElementSizeReturn {
   const { box = 'content-box' } = options;
-  const [width, setWidth] = useState(initialSize.width);
-  const [height, setHeight] = useState(initialSize.height);
 
-  useResizeObserver(target, ([entry]) => {
-    const boxSize =
-      box === 'border-box'
-        ? entry.borderBoxSize
-        : box === 'content-box'
-        ? entry.contentBoxSize
-        : entry.devicePixelContentBoxSize;
-    if (window) {
-      const $elm = target.current;
-      if ($elm) {
-        const styles = window.getComputedStyle($elm);
-        setWidth(parseFloat(styles.width));
-        setHeight(parseFloat(styles.height));
-      }
-    } else {
-      if (boxSize) {
-        const formatBoxSize = Array.isArray(boxSize) ? boxSize : [boxSize];
-        setWidth(
-          formatBoxSize.reduce((acc, { inlineSize }) => acc + inlineSize, 0)
-        );
-        setHeight(
-          formatBoxSize.reduce((acc, { blockSize }) => acc + blockSize, 0)
-        );
+  const [size, setSize] = useState<ElementSize>(() => ({
+    width: target.current ? initialSize.width : 0,
+    height: target.current ? initialSize.height : 0
+  }));
+
+  const callbackFunction = useCallback<
+    (arg: ReadonlyArray<ResizeObserverEntry>) => void
+  >(
+    ([entry]) => {
+      const boxSize =
+        box === 'border-box'
+          ? entry.borderBoxSize
+          : box === 'content-box'
+          ? entry.contentBoxSize
+          : entry.devicePixelContentBoxSize;
+      if (window) {
+        const $elm = target.current;
+        if ($elm) {
+          const styles = window.getComputedStyle($elm);
+
+          setSize({
+            width: parseFloat(styles.width),
+            height: parseFloat(styles.height)
+          });
+        }
       } else {
-        setWidth(entry.contentRect.width);
-        setHeight(entry.contentRect.height);
+        if (boxSize) {
+          const formatBoxSize = Array.isArray(boxSize) ? boxSize : [boxSize];
+          setSize({
+            width: formatBoxSize.reduce(
+              (acc, { inlineSize }) => acc + inlineSize,
+              0
+            ),
+            height: formatBoxSize.reduce(
+              (acc, { blockSize }) => acc + blockSize,
+              0
+            )
+          });
+        } else {
+          setSize({
+            width: entry.contentRect.width,
+            height: entry.contentRect.height
+          });
+        }
       }
-    }
-  });
+    },
+    [box, target]
+  );
 
   useEffect(() => {
-    setWidth(target.current ? initialSize.width : 0);
-    setHeight(target.current ? initialSize.height : 0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [target]);
+    let observerRefValue: null | Element = null;
 
-  return [width, height];
+    const resizeObserver = new ResizeObserver(callbackFunction);
+
+    if (target.current) {
+      resizeObserver.observe(target.current);
+      observerRefValue = target.current;
+    }
+    return () => {
+      if (observerRefValue) {
+        resizeObserver.unobserve(observerRefValue);
+      }
+    };
+  }, [callbackFunction, target]);
+
+  return size;
 }
