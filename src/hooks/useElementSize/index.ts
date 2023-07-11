@@ -25,7 +25,7 @@ export function useElementSize(
   const [size, setSize] = useState<ElementSize>(() => ({
     width: target.current ? initialSize.width : 0,
     height: target.current ? initialSize.height : 0
-  }))
+  }));
 
   const callbackFunction = useCallback<
     (arg: ReadonlyArray<ResizeObserverEntry>) => void
@@ -45,20 +45,26 @@ export function useElementSize(
           setSize({
             width: parseFloat(styles.width),
             height: parseFloat(styles.height)
-          })
+          });
         }
       } else {
         if (boxSize) {
           const formatBoxSize = Array.isArray(boxSize) ? boxSize : [boxSize];
           setSize({
-            width: formatBoxSize.reduce((acc, { inlineSize }) => acc + inlineSize, 0),
-            height: formatBoxSize.reduce((acc, { blockSize }) => acc + blockSize, 0)
-          })
+            width: formatBoxSize.reduce(
+              (acc, { inlineSize }) => acc + inlineSize,
+              0
+            ),
+            height: formatBoxSize.reduce(
+              (acc, { blockSize }) => acc + blockSize,
+              0
+            )
+          });
         } else {
           setSize({
             width: entry.contentRect.width,
             height: entry.contentRect.height
-          })
+          });
         }
       }
     },
