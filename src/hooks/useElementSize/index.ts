@@ -1,4 +1,4 @@
-import { RefObject, useEffect, useState, useCallback } from 'react';
+import { RefObject, useEffect, useState, useCallback, useRef } from 'react';
 
 export interface ElementSize {
   width: number;
@@ -27,6 +27,18 @@ export function useElementSize(
     height: target.current ? initialSize.height : 0
   }));
 
+  const ref = useRef(0);
+  const setRafState = useCallback(
+    (value: ElementSize | ((prevSize: ElementSize) => ElementSize)) => {
+      cancelAnimationFrame(ref.current);
+
+      ref.current = requestAnimationFrame(() => {
+        setSize(value);
+      });
+    },
+    []
+  );
+
   const callbackFunction = useCallback<
     (arg: ReadonlyArray<ResizeObserverEntry>) => void
   >(
@@ -42,7 +54,7 @@ export function useElementSize(
         if ($elm) {
           const styles = window.getComputedStyle($elm);
 
-          setSize({
+          setRafState({
             width: parseFloat(styles.width),
             height: parseFloat(styles.height)
           });
@@ -50,7 +62,7 @@ export function useElementSize(
       } else {
         if (boxSize) {
           const formatBoxSize = Array.isArray(boxSize) ? boxSize : [boxSize];
-          setSize({
+          setRafState({
             width: formatBoxSize.reduce(
               (acc, { inlineSize }) => acc + inlineSize,
               0
@@ -61,14 +73,14 @@ export function useElementSize(
             )
           });
         } else {
-          setSize({
+          setRafState({
             width: entry.contentRect.width,
             height: entry.contentRect.height
           });
         }
       }
     },
-    [box, target]
+    [setRafState, box, target]
   );
 
   useEffect(() => {
@@ -83,6 +95,7 @@ export function useElementSize(
     return () => {
       if (observerRefValue) {
         resizeObserver.unobserve(observerRefValue);
+        cancelAnimationFrame(ref.current);
       }
     };
   }, [callbackFunction, target]);
