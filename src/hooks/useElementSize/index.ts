@@ -1,6 +1,6 @@
-import { RefObject, useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 
-export interface ElementSize {
+interface ElementSize {
   width: number;
   height: number;
 }
@@ -16,16 +16,24 @@ export interface useElementSizeOptions {
 export type UseElementSizeReturn = ElementSize;
 
 export function useElementSize(
-  target: RefObject<Element>,
+  target: DomTarget.BasicTarget,
   initialSize: ElementSize = { width: 0, height: 0 },
   options: useElementSizeOptions = {}
 ): UseElementSizeReturn {
   const { box = 'content-box' } = options;
 
-  const [size, setSize] = useState<ElementSize>(() => ({
-    width: target.current ? initialSize.width : 0,
-    height: target.current ? initialSize.height : 0
-  }));
+  const [size, setSize] = useState<ElementSize>(() => {
+    if (target && 'current' in target && target.current) {
+      return {
+        width: initialSize.width,
+        height: initialSize.height
+      };
+    }
+    return {
+      width: 0,
+      height: 0
+    };
+  });
 
   const ref = useRef(0);
   const setRafState = useCallback(
@@ -49,7 +57,7 @@ export function useElementSize(
           : box === 'content-box'
           ? entry.contentBoxSize
           : entry.devicePixelContentBoxSize;
-      if (window) {
+      if (window && target && 'current' in target) {
         const $elm = target.current;
         if ($elm) {
           const styles = window.getComputedStyle($elm);
@@ -88,7 +96,7 @@ export function useElementSize(
 
     const resizeObserver = new ResizeObserver(callbackFunction);
 
-    if (target.current) {
+    if (target && 'current' in target && target.current) {
       resizeObserver.observe(target.current);
       observerRefValue = target.current;
     }
