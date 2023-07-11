@@ -13,7 +13,7 @@ export interface useElementSizeOptions {
   box?: ResizeObserverBoxOptions;
 }
 
-export type UseElementSizeReturn = [number, number];
+export type UseElementSizeReturn = ElementSize;
 
 export function useElementSize(
   target: RefObject<Element>,
@@ -21,12 +21,11 @@ export function useElementSize(
   options: useElementSizeOptions = {}
 ): UseElementSizeReturn {
   const { box = 'content-box' } = options;
-  const [width, setWidth] = useState(() => {
-    return target.current ? initialSize.width : 0;
-  });
-  const [height, setHeight] = useState(() => {
-    return target.current ? initialSize.height : 0;
-  });
+
+  const [size, setSize] = useState<ElementSize>(() => ({
+    width: target.current ? initialSize.width : 0,
+    height: target.current ? initialSize.height : 0
+  }))
 
   const callbackFunction = useCallback<
     (arg: ReadonlyArray<ResizeObserverEntry>) => void
@@ -42,21 +41,24 @@ export function useElementSize(
         const $elm = target.current;
         if ($elm) {
           const styles = window.getComputedStyle($elm);
-          setWidth(parseFloat(styles.width));
-          setHeight(parseFloat(styles.height));
+
+          setSize({
+            width: parseFloat(styles.width),
+            height: parseFloat(styles.height)
+          })
         }
       } else {
         if (boxSize) {
           const formatBoxSize = Array.isArray(boxSize) ? boxSize : [boxSize];
-          setWidth(
-            formatBoxSize.reduce((acc, { inlineSize }) => acc + inlineSize, 0)
-          );
-          setHeight(
-            formatBoxSize.reduce((acc, { blockSize }) => acc + blockSize, 0)
-          );
+          setSize({
+            width: formatBoxSize.reduce((acc, { inlineSize }) => acc + inlineSize, 0),
+            height: formatBoxSize.reduce((acc, { blockSize }) => acc + blockSize, 0)
+          })
         } else {
-          setWidth(entry.contentRect.width);
-          setHeight(entry.contentRect.height);
+          setSize({
+            width: entry.contentRect.width,
+            height: entry.contentRect.height
+          })
         }
       }
     },
@@ -79,5 +81,5 @@ export function useElementSize(
     };
   }, [callbackFunction, target]);
 
-  return [width, height];
+  return size;
 }
