@@ -21,11 +21,17 @@ export function useElementSize(
   options: useElementSizeOptions = {}
 ): UseElementSizeReturn {
   const { box = 'content-box' } = options;
-  const [width, setWidth] = useState(initialSize.width);
-  const [height, setHeight] = useState(initialSize.height);
+  const [width, setWidth] = useState(() => {
+    return target.current ? initialSize.width : 0;
+  });
+  const [height, setHeight] = useState(() => {
+    return target.current ? initialSize.height : 0;
+  });
 
-  const callbackFunction = useCallback(
-    ([entry]: ReadonlyArray<ResizeObserverEntry>) => {
+  const callbackFunction = useCallback<
+    (arg: ReadonlyArray<ResizeObserverEntry>) => void
+  >(
+    ([entry]) => {
       const boxSize =
         box === 'border-box'
           ? entry.borderBoxSize
@@ -56,12 +62,6 @@ export function useElementSize(
     },
     [box, target]
   );
-
-  useEffect(() => {
-    setWidth(target.current ? initialSize.width : 0);
-    setHeight(target.current ? initialSize.height : 0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [target]);
 
   useEffect(() => {
     let observerRefValue: null | Element = null;
