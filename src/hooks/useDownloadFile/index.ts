@@ -17,7 +17,7 @@ export function useDownloadFile<T = Blob>({
   data,
   onCreateBlob
 }: UseDownloadFileProps<T>) {
-  const [blobUrl, setBlobUrl] = useState<string>();
+  const [blobUrl, setBlobUrl] = useState<string>('');
 
   useEffect(() => {
     const isBlob = data instanceof Blob;
@@ -31,9 +31,13 @@ export function useDownloadFile<T = Blob>({
           : new Blob([data as string], { type: format })
       )
     );
+    return () => URL.revokeObjectURL(blobUrl);
   }, [format, data, onCreateBlob]);
 
-  const downloadFile = useCallback(forceDownload, [fileName, blobUrl]);
+  const downloadFile = useCallback(
+    () => forceDownload(fileName, blobUrl),
+    [fileName, blobUrl]
+  );
 
   const linkProps = {
     download: fileName,
